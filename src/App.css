@@ -1,0 +1,58 @@
+:root {
+  --ink: #1b2430;
+  --muted: #5a6573;
+  --line: #c9d1da;
+  --accent: #1d4ed8;
+  --ok: #166534;
+  --warn: #92400e;
+  --bad: #991b1b;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: #f6f8fa;
+}
+
+body { margin: 0; }
+
+.aip {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 32px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+h1 { font-size: 1.5rem; margin: 0 0 4px; }
+.lede { color: var(--muted); margin: 0 0 24px; }
+
+form { display: grid; gap: 6px; }
+label { font-weight: 600; font-size: 0.9rem; margin-top: 10px; }
+
+input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+button {
+  margin-top: 18px;
+  font: inherit;
+  font-weight: 600;
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.result { margin-top: 24px; display: grid; gap: 8px; }
+.badge { font-weight: 700; padding: 8px 12px; border-radius: 8px; width: fit-content; }
+.badge-accepted { color: var(--ok); background: #dcfce7; }
+.badge-referred { color: var(--warn); background: #fef3c7; }
+.badge-declined { color: var(--bad); background: #fee2e2; }
+#max-borrowing { font-size: 1.25rem; }
+#referral-guidance, .error { color: var(--muted); }
+.error { color: var(--bad); }

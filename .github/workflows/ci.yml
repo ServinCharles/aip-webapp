@@ -25,17 +25,19 @@ jobs:
         run: docker build --platform linux/amd64 -t aip-webapp:ci .
       - name: nginx starts without the chat service, and routes /api/chat when it exists
         run: |
+          report() { echo "::error::$1"; docker logs web 2>&1 | tail -15 | sed 's/^/::error::nginx: /'; exit 1; }
           docker network create aipnet
           docker run -d --name web --network aipnet -p 8091:8080 aip-webapp:ci
           for i in $(seq 1 20); do curl -sf http://localhost:8091/healthz > /dev/null && break; sleep 1; done
-          curl -sf http://localhost:8091/healthz
+          curl -sf http://localhost:8091/healthz > /dev/null || report "web app did not start"
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8091/api/chat -H 'Content-Type: application/json' -d '{"message":"hi"}')
-          echo "chat with no chat service: HTTP $code"; test "$code" = "502"
+          echo "chat with no chat service: HTTP $code"
+          [ "$code" = "502" ] || report "expected 502 with no chat service, got $code"
           docker run -d --name aip-chat-api --network aipnet python:3.12-alpine python -m http.server 8080
           sleep 12   # longer than the resolver's 10s cache, so nginx looks the name up again
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8091/api/chat -H 'Content-Type: application/json' -d '{"message":"hi"}')
-          echo "chat routed to stand-in service: HTTP $code"; test "$code" = "501"
-          docker logs web 2>&1 | tail -5
+          echo "chat routed to stand-in service: HTTP $code"
+          [ "$code" = "501" ] || report "expected 501 from the stand-in chat service, got $code"
       - uses: docker/setup-qemu-action@v3
       - name: Build image for Apple Silicon (linux/arm64)
         run: docker buildx build --platform linux/arm64 -t aip-webapp:ci-arm64 .

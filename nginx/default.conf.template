@@ -1,10 +1,23 @@
-# Rendered at container start by the nginx image (envsubst replaces ${API_UPSTREAM} only).
+# Rendered at container start by the nginx image: envsubst fills in ${API_UPSTREAM}, ${CHAT_UPSTREAM}
+# and ${NGINX_LOCAL_RESOLVERS} (the container's DNS servers, set by docker-entrypoint.d/16-chat-resolver.envsh).
 server {
     listen 8080;
     server_name _;
     root /usr/share/nginx/html;
 
-    # Forward API calls to the aip-api microservice (a Kubernetes Service in the same namespace)
+    # Chat goes to the aip-chat-api microservice. Using a variable makes nginx look the address up
+    # per request, so the web app still starts and works if the chat service isn't deployed
+    # (chat requests then get a 502 and the widget shows "assistant unavailable").
+    resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+    location /api/chat {
+        set $chat_upstream ${CHAT_UPSTREAM};
+        proxy_pass $chat_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Forward other API calls to the aip-api microservice
     location /api/ {
         proxy_pass ${API_UPSTREAM};
         proxy_set_header Host $host;

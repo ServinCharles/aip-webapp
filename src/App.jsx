@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ChatWidget from './ChatWidget.jsx';
 
 // data-testid values are the contract with the test framework (Agentic-qa-demo) locators
 // in features/Locators/*.locators.js. Change them there too if they ever change here.
@@ -101,6 +102,8 @@ export default function App() {
         </div>
         {error && <p className="error" role="alert">{error}</p>}
       </section>
+
+      <ChatWidget />
     </main>
   );
 }

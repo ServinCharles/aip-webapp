@@ -1,5 +1,6 @@
 # aip-webapp: React frontend served by non-root nginx, proxying /api to aip-api
-FROM node:20-alpine AS build
+# Static build output is the same on any CPU, so build natively even when targeting linux/amd64
+FROM --platform=$BUILDPLATFORM node:20-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci

@@ -1,23 +1,40 @@
 name: CI
 
+# Mirrors the Jenkins build pipeline (Jenkinsfile) so every change proves the same commands work.
 on:
   push:
   pull_request:
     branches: [main]
 
+env:
+  TRIVY_IMAGE: aquasec/trivy:0.58.1
+
 jobs:
   build:
-    name: Build
+    name: Build, image and Trivy scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Install and build (same command as Jenkins, in a Node container)
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e npm_config_cache=/tmp/.npm \
+            -v "$PWD":/app -w /app node:20-alpine \
+            sh -c 'npm ci --no-audit --no-fund && npm run build'
+          test -s dist/index.html
+      - name: Build image for EKS (linux/amd64)
+        run: docker build --platform linux/amd64 -t aip-webapp:ci .
+      - name: Build image for Apple Silicon (linux/arm64)
+        run: docker buildx build --platform linux/arm64 -t aip-webapp:ci-arm64 .
+      - name: Trivy image scan (same gate as Jenkins)
+        run: |
+          mkdir -p reports
+          TRIVY="docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/ -v $PWD/reports:/reports $TRIVY_IMAGE"
+          $TRIVY image --no-progress --format json --output /reports/trivy-aip-webapp.json aip-webapp:ci
+          $TRIVY image --no-progress --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed aip-webapp:ci
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - name: Build Docker image
-        run: docker build -t aip-webapp:ci .
+          name: trivy-report
+          path: reports/
       - name: Render Kubernetes manifests
         run: kubectl kustomize deploy/k8s > /dev/null

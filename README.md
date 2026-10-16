@@ -20,9 +20,11 @@ The journey is served at `/mortgages/decision-in-principle` (any route serves th
 
 ## Run locally
 
+Local ports avoid the rest of the toolchain: 8080 is Jenkins and 3000 is the test framework's mock server.
+
 ```bash
 npm install
-npm run dev          # http://localhost:3000, proxies /api to the API on http://localhost:8080
+npm run dev          # http://localhost:5173, proxies /api to the API on http://localhost:5080
 ```
 
 Point it at a different API with `API_UPSTREAM=http://localhost:9090 npm run dev`.
@@ -31,7 +33,7 @@ In Docker (the API container must be reachable as `aip-api`, or set `API_UPSTREA
 
 ```bash
 docker build -t aip-webapp .
-docker run -p 3000:8080 -e API_UPSTREAM=http://host.docker.internal:8080 aip-webapp
+docker run -p 8090:8080 -e API_UPSTREAM=http://host.docker.internal:5080 aip-webapp
 ```
 
 ## Deployment

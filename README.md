@@ -1,6 +1,6 @@
 # AIP Web App
 
-React frontend for a mortgage **Agreement in Principle (AIP)**. Served by non-root nginx, which forwards `/api/*` to the [aip-mortgage-api](https://github.com/ServinCharles/aip-mortgage-api) .NET microservice. Both run in the `aip-mortgage` namespace on Amazon EKS, and the [Agentic-qa-demo](https://github.com/ServinCharles/Agentic-qa-demo) framework tests them end to end.
+React frontend for a mortgage **Agreement in Principle (AIP)**. Served by non-root nginx, which forwards `/api/*` to the [aip-mortgage-api](https://github.com/ServinCharles/aip-mortgage-api) .NET microservice. Both run on Amazon EKS (this app in `<env>-dip`, e.g. `sit-01-dip`; the API in `<env>-api`), and the [Agentic-qa-demo](https://github.com/ServinCharles/Agentic-qa-demo) framework tests them end to end.
 
 ## Test contract
 
@@ -34,22 +34,16 @@ docker build -t aip-webapp .
 docker run -p 3000:8080 -e API_UPSTREAM=http://host.docker.internal:8080 aip-webapp
 ```
 
-## Deploy to AWS
+## Deployment
 
-Deploy [aip-mortgage-api](https://github.com/ServinCharles/aip-mortgage-api) first (it creates the cluster and the API service). Then:
-
-```bash
-./scripts/deploy.sh
-```
-
-It builds and pushes the image to ECR, rolls it out, and prints the public load balancer URL to use as `BASE_URL` in the test framework.
+Deployment lives in [aip-deployment-pipeline](https://github.com/ServinCharles/aip-deployment-pipeline): the AWS infrastructure, the Kubernetes config for sit-01 and sit-02, and the Jenkins **AIP Deployment Pipeline**. It deploys this app to `<env>-dip`, points it at the API in `<env>-api`, and prints the public URL to use as `BASE_URL` in the test framework.
 
 ## Jenkins build pipeline
 
-`Jenkinsfile` builds the app once, scans it, then publishes one image tagged with the git commit (e.g. `aip-webapp:3f2a1c9`). The deploy pipeline later promotes that exact image.
+`Jenkinsfile` builds the app once, scans it, then publishes one image tagged with the git commit (e.g. `aip-webapp:3f2a1c9`). The AIP Deployment Pipeline then promotes that exact image; set `TRIGGER_DEPLOY` to deploy it to sit-01 automatically after a green build.
 
 ```
-Checkout → Install & Build → SonarQube → Snyk → Docker Build → Image Scan → Push to ECR
+Checkout → Install & Build → SonarQube → Snyk → Docker Build → Image Scan → Push to ECR → Trigger Deploy
 ```
 
 | Stage | What it does | Fails the build when |

@@ -41,5 +41,3 @@ jobs:
         with:
           name: trivy-report
           path: reports/
-      - name: Render Kubernetes manifests
-        run: kubectl kustomize deploy/k8s > /dev/null

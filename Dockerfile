@@ -12,8 +12,11 @@ RUN npm run build
 FROM nginxinc/nginx-unprivileged:stable-alpine
 USER root
 RUN apk upgrade --no-cache
+COPY --chmod=755 nginx/16-chat-resolver.envsh /docker-entrypoint.d/16-chat-resolver.envsh
 USER 101
-ENV API_UPSTREAM=http://aip-api:8080
+# Defaults for docker compose; Kubernetes overrides them with full cluster DNS names
+ENV API_UPSTREAM=http://aip-api:8080 \
+    CHAT_UPSTREAM=http://aip-chat-api:8080
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 8080

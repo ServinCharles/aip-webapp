@@ -1,0 +1,8 @@
+#!/bin/sh
+# Sourced by the nginx image's entrypoint before the config templates are rendered.
+# Makes sure NGINX_LOCAL_RESOLVERS holds the container's DNS servers (from /etc/resolv.conf),
+# which the chat proxy needs to look up aip-chat-api at request time.
+if [ -z "${NGINX_LOCAL_RESOLVERS:-}" ]; then
+  NGINX_LOCAL_RESOLVERS=$(awk 'BEGIN { ORS = " " } $1 == "nameserver" { print ($2 ~ ":") ? "[" $2 "]" : $2 }' /etc/resolv.conf)
+  export NGINX_LOCAL_RESOLVERS
+fi

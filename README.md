@@ -15,8 +15,18 @@ The `data-testid` attributes are what the test framework's locators target. Keep
 | `decision-outcome` | Decision badge (Accepted / Referred / Declined) |
 | `max-borrowing-amount` | Maximum borrowing figure |
 | `referral-guidance` | Guidance shown for Referred decisions |
+| `chat-open` | Chat launcher button ("Ask us") |
+| `chat-panel` | Chat window |
+| `chat-input` / `chat-send` | Question box and Send button |
+| `chat-suggestion` | Quick-question chips |
+| `chat-message` | Each message; `data-role` is `user` or `bot`, bot messages carry `data-intent` |
+| `chat-handover` | Shown when the bot passes the customer to a colleague |
 
 The journey is served at `/mortgages/decision-in-principle` (any route serves the app).
+
+## Chat assistant
+
+The "Ask us" widget (`src/ChatWidget.jsx`) talks to the [aip-chat-api](https://github.com/ServinCharles/aip-chat-api) microservice through `/api/chat`. nginx looks the chat service up per request (`CHAT_UPSTREAM`), so the page still loads and the AIP journey still works where the chat service isn't deployed: the widget just says the assistant is unavailable.
 
 ## Run locally
 
@@ -24,7 +34,7 @@ Local ports avoid the rest of the toolchain: 8080 is Jenkins and 3000 is the tes
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173, proxies /api to the API on http://localhost:5080
+npm run dev          # http://localhost:5173: /api/chat → aip-chat-api on 5081, other /api → aip-api on 5080
 ```
 
 Point it at a different API with `API_UPSTREAM=http://localhost:9090 npm run dev`.

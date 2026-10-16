@@ -27,6 +27,8 @@ jobs:
         run: |
           report() { echo "::error::$1"; docker logs web 2>&1 | grep -iE "emerg|error|warn|resolver|invalid" | head -6 | sed 's/^/::error::nginx: /'; docker exec web cat /etc/nginx/conf.d/default.conf 2>/dev/null | grep -nE "resolver|chat_upstream" | sed 's/^/::error::conf: /' || true; exit 1; }
           docker network create aipnet
+          # The web app needs aip-api at start-up (as on Kubernetes); a stand-in is enough here
+          docker run -d --name aip-api --network aipnet python:3.12-alpine python -m http.server 8080
           docker run -d --name web --network aipnet -p 8091:8080 aip-webapp:ci
           for i in $(seq 1 20); do curl -sf http://localhost:8091/healthz > /dev/null && break; sleep 1; done
           curl -sf http://localhost:8091/healthz > /dev/null || report "web app did not start"

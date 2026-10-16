@@ -25,7 +25,7 @@ jobs:
         run: docker build --platform linux/amd64 -t aip-webapp:ci .
       - name: nginx starts without the chat service, and routes /api/chat when it exists
         run: |
-          report() { echo "::error::$1"; docker logs web 2>&1 | tail -15 | sed 's/^/::error::nginx: /'; exit 1; }
+          report() { echo "::error::$1"; docker logs web 2>&1 | grep -iE "emerg|error|warn|resolver|invalid" | head -6 | sed 's/^/::error::nginx: /'; docker exec web cat /etc/nginx/conf.d/default.conf 2>/dev/null | grep -nE "resolver|chat_upstream" | sed 's/^/::error::conf: /' || true; exit 1; }
           docker network create aipnet
           docker run -d --name web --network aipnet -p 8091:8080 aip-webapp:ci
           for i in $(seq 1 20); do curl -sf http://localhost:8091/healthz > /dev/null && break; sleep 1; done

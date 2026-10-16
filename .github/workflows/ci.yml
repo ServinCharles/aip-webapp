@@ -31,6 +31,10 @@ jobs:
           TRIVY="docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v trivy-cache:/root/.cache/ -v $PWD/reports:/reports $TRIVY_IMAGE"
           $TRIVY image --no-progress --format json --output /reports/trivy-aip-webapp.json aip-webapp:ci
           $TRIVY image --no-progress --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed aip-webapp:ci
+      - name: Summarise vulnerabilities
+        if: failure()
+        run: |
+          jq -r '.Results[]? | .Target as $t | .Vulnerabilities[]? | select(.Severity=="HIGH" or .Severity=="CRITICAL") | select(.FixedVersion != null and .FixedVersion != "") | "::error title=\(.Severity) \(.VulnerabilityID)::\($t): \(.PkgName) \(.InstalledVersion) -> fix \(.FixedVersion)"' reports/*.json | sort -u | head -40
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -23,6 +23,7 @@ jobs:
           test -s dist/index.html
       - name: Build image for EKS (linux/amd64)
         run: docker build --platform linux/amd64 -t aip-webapp:ci .
+      - uses: docker/setup-qemu-action@v3
       - name: Build image for Apple Silicon (linux/arm64)
         run: docker buildx build --platform linux/arm64 -t aip-webapp:ci-arm64 .
       - name: Trivy image scan (same gate as Jenkins)

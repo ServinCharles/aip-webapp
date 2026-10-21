@@ -63,7 +63,7 @@ Checkout → Install & Build → SonarQube → Snyk → Docker Build → Image S
 | Install & Build | `npm ci` + `npm run build` in a Node container, `dist/` archived | the build breaks |
 | SonarQube | scanner with `sonar-project.properties`, waits for the quality gate | quality gate fails |
 | Snyk | dependency (SCA) scan of `package-lock.json` | a high or critical vulnerability is found |
-| Docker Build | nginx runtime image for `PLATFORM` (default `linux/amd64` for EKS) | the image doesn't build |
+| Docker Build | nginx runtime image for `PLATFORM` (default `auto`: `linux/amd64` when pushing to ECR for EKS, otherwise the local Docker engine architecture, `linux/arm64` on Apple Silicon) | the image doesn't build |
 | Image Scan | Trivy (default) or Twistlock `twistcli`, JSON report archived | a fixable HIGH/CRITICAL CVE is found |
 | Push to ECR | pushes the scanned image, archives `ecr-image.properties` for the deploy pipeline | the push fails |
 
